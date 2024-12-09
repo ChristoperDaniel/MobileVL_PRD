@@ -3,6 +3,7 @@
     "name": "VirtualLabPRD",
     "slug": "VirtualLabPRD",
     "version": "1.0.0",
+    "owner": "mobdev_pawm_vl_uas",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
