@@ -20,18 +20,22 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#D1C4E9"
-      }
+      },
+      "package": "com.virtualLabPRD_EduLab"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      
-    ],
+    "plugins": [],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6a190987-72d4-4a6e-9989-0838b4979d95"
+      }
     }
   }
 }
