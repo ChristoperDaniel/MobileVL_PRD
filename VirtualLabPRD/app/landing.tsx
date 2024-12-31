@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   Text,
   View,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 
 const { width } = Dimensions.get('window');
+const footer_height = 45;
 
 type TabRoute = {
   name: string;
@@ -27,6 +29,20 @@ const Header = ({ title }: { title: string }) => (
     <Text style={styles.headerText}>{title}</Text>
   </View>
 );
+
+type Module = {
+  id: number;
+  title: string;
+  image: any;
+  href: "/home/module1" | "/home/module2" | "/home/module3" | "/home/module4" | "/home/module5";
+}
+
+type MenuItem = {
+  id: number;
+  title: string;
+  icon: string;
+  screen: "/profile/quizresults" | "/profile/settings";
+};
 
 export default function Landing() {
   const [activeScreen, setActiveScreen] = useState(0);
@@ -64,6 +80,54 @@ export default function Landing() {
     setActiveScreen(index);
   };
 
+  const modules: Module[] = [
+    {
+      id: 1,
+      title: "Introduction to Engineering and Design",
+      image: require('../assets/images/module1.png'),
+      href: "/home/module1"
+    },
+    {
+      id: 2,
+      title: "Professional Engineering Ethics",
+      image: require('../assets/images/module2.png'),
+      href: "/home/module2"
+    },
+    {
+      id: 3,
+      title: "Aspects of Engineering and Problem-Solving Methods",
+      image: require('../assets/images/module3.png'),
+      href: "/home/module3"
+    },
+    {
+      id: 4,
+      title: "Engineering Design Process Problem Definition & Gathering Information",
+      image: require('../assets/images/module4.png'),
+      href: "/home/module4"
+    },
+    {
+      id: 5,
+      title: "Engineering Design Process Concept Generation, Concept Selection, Prototyping & Testing",
+      image: require('../assets/images/module5.png'),
+      href: "/home/module5"
+    }
+  ];
+
+  const menuItems: MenuItem[] = [
+    {
+      id: 1,
+      title: 'Quiz Results',
+      icon: 'assignment',
+      screen: "/profile/quizresults"
+    },
+    {
+      id: 2,
+      title: 'Settings',
+      icon: 'settings',
+      screen: "/profile/settings"
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen
@@ -84,7 +148,7 @@ export default function Landing() {
         {/* Home Screen */}
         <View style={styles.screen}>
           <Header title="EduLab" />
-          <ScrollView>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <View style={styles.welcomeContainer}>
               <Image 
                 source={require('../assets/images/elephant.png')}
@@ -99,8 +163,23 @@ export default function Landing() {
             </View>
             <Text style={styles.sectionTitle}>Modules</Text>
             <View style={styles.modulesContainer}>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <View key={item} style={styles.moduleCard} />
+              {modules.map((module) => (
+                <View key={module.id} style={styles.moduleCard}>
+                  <Image
+                    source={module.image}
+                    style={styles.moduleImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.moduleContent}>
+                    <Text style={styles.moduleTitle}>{module.title}</Text>
+                    <TouchableOpacity 
+                      style={styles.readButton}
+                      onPress={() => router.push(module.href)}
+                    >
+                      <Text style={styles.readButtonText}>Read</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               ))}
             </View>
           </ScrollView>
@@ -119,11 +198,35 @@ export default function Landing() {
           </ScrollView>
         </View>
 
-        {/* Profile Screen - No Header */}
-        <View style={[styles.screen, styles.profileScreen]}>
+        {/* Profile Screen */}
+        <View style={styles.screen}>
           <ScrollView>
-            <View style={styles.profileContainer}>
-              <View style={styles.profileCard} />
+            <Text style={styles.profileTitle}>My Profile</Text>
+            <View style={styles.profileSection}>
+              <View style={styles.profileHeader}>
+                <Image
+                  source={require('../assets/images/elephant.png')}
+                  style={styles.avatar}
+                />
+              <Text style={styles.userName}>Nicholas Ependi</Text>
+              <Text style={styles.userRole}>Student</Text>
+              </View>
+
+              <View style={styles.menuContainer}>
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.menuItem}
+                    onPress={() => router.push(item.screen)}
+                  >
+                    <View style={styles.menuItemContent}>
+                      <Icon name={item.icon} size={24} color="#5C63DB" />
+                      <Text style={styles.menuItemText}>{item.title}</Text>
+                    </View>
+                    <Icon name="chevron-right" size={24} color="#5C63DB" />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -183,18 +286,18 @@ const styles = StyleSheet.create({
     width: width,
     height: '100%',
   },
-  profileScreen: {
-    paddingTop: 20, // Add some top padding since there's no header
+  scrollViewContent: {
+    paddingBottom: footer_height,
   },
   welcomeContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 10,
+    paddingRight: 20,
     marginBottom: 10,
     alignItems: 'center',
   },
   elephantImage: {
     width: 150,
-    height: 150,
+    height: 100,
   },
   welcomeTextContainer: {
     flex: 1,
@@ -215,24 +318,55 @@ const styles = StyleSheet.create({
     fontWeight: 800,
   },
   sectionTitle: {
-    fontSize: 20,
-    color: '#5751FF',
-    paddingHorizontal: 16,
-    // marginBottom: 10,
+    fontSize: 18,
+    fontWeight: 800,
+    color: '#5C63D8',
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
   modulesContainer: {
     padding: 16,
   },
   moduleCard: {
-    height: 100,
     backgroundColor: 'white',
     borderRadius: 12,
     marginBottom: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  moduleImage: {
+    width: '100%',
+    height: 150,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  moduleContent: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  moduleTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+    marginRight: 12,
+  },
+  readButton: {
+    backgroundColor: '#5C63D8',
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  readButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   tasksContainer: {
     padding: 16,
@@ -248,18 +382,62 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  profileContainer: {
+  profileTitle: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: '#5C63D8',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  profileSection: {
+    paddingTop: 50,
+  },
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 15,
+    backgroundColor: '#FFF',
+  },
+  userName: {
+    fontSize: 25,
+    fontWeight: 900,
+    textAlign: 'center',
+    color: '#5C63DB',
+  },
+  userRole: {
+    fontSize: 18,
+    color: '#666',
+  },
+  menuContainer: {
     padding: 16,
   },
-  profileCard: {
-    height: 200,
+  menuItem: {
     backgroundColor: 'white',
     borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+  },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemText: {
+    fontSize: 16,
+    marginLeft: 12,
+    color: '#333',
   },
   bottomContainer: {
     flexDirection: "row",

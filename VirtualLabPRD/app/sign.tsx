@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
-export default function Profile() {
+export default function Sign() {
   const [name, setName] = useState('');
   const router = useRouter()
 

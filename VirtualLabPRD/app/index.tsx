@@ -49,6 +49,7 @@ export default function Index() {
             </Text>
             </TouchableOpacity>
           ),
+          headerBackVisible: false,
         }}
       />
 

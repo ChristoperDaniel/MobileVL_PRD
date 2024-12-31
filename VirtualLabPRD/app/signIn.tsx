@@ -66,9 +66,12 @@ export default function SignIn() {
           <Text style={styles.signInButtonText}>Sign In</Text>
         </TouchableOpacity>
 
-        <Link href="/signUp" style={styles.signUpText}>
-          New to EduLab? Sign Up now.
-        </Link>
+        <TouchableOpacity 
+          onPress ={() => router.push('/signUp')}
+        >
+          <Text style={styles.signUpText}>New to EduLab? Sign Up now.</Text>
+        </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
