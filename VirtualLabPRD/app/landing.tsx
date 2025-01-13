@@ -37,6 +37,13 @@ type Module = {
   href: "/home/module1" | "/home/module2" | "/home/module3" | "/home/module4" | "/home/module5";
 }
 
+type Task = {
+  id: number;
+  title: string;
+  image: any;
+  href: "/practice/task1" | "/practice/task2" | "/practice/task3" | "/practice/task4" | "/practice/task5";
+}
+
 type MenuItem = {
   id: number;
   title: string;
@@ -110,6 +117,39 @@ export default function Landing() {
       title: "Engineering Design Process Concept Generation, Concept Selection, Prototyping & Testing",
       image: require('../assets/images/module5.png'),
       href: "/home/module5"
+    }
+  ];
+
+  const tasks: Task[] = [
+    {
+      id: 1,
+      title: "Introduction to Engineering and Design",
+      image: require('../assets/images/quiz1.jpg'),
+      href: "/practice/task1"
+    },
+    {
+      id: 2,
+      title: "Professional Engineering Ethics",
+      image: require('../assets/images/quiz2.jpg'),
+      href: "/practice/task2"
+    },
+    {
+      id: 3,
+      title: "Aspects of Engineering and Problem-Solving Methods",
+      image: require('../assets/images/quiz3.jpg'),
+      href: "/practice/task3"
+    },
+    {
+      id: 4,
+      title: "Engineering Design Process Problem Definition & Gathering Information",
+      image: require('../assets/images/quiz4.jpg'),
+      href: "/practice/task4"
+    },
+    {
+      id: 5,
+      title: "Engineering Design Process Concept Generation, Concept Selection, Prototyping & Testing",
+      image: require('../assets/images/quiz5.jpg'),
+      href: "/practice/task5"
     }
   ];
 
@@ -188,11 +228,26 @@ export default function Landing() {
         {/* Practice Screen */}
         <View style={styles.screen}>
           <Header title="Practice" />
-          <ScrollView>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
             <Text style={styles.sectionTitle}>My Task</Text>
             <View style={styles.tasksContainer}>
-              {[1, 2, 3].map((item) => (
-                <View key={item} style={styles.taskCard} />
+              {tasks.map((task) => (
+                <View key={task.id} style={styles.taskCard}>
+                  <Image
+                    source={task.image}
+                    style={styles.taskImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.taskContent}>
+                    <Text style={styles.taskTitle}>{task.title}</Text>
+                    <TouchableOpacity 
+                      style={styles.readButton}
+                      onPress={() => router.push(task.href)}
+                    >
+                      <Text style={styles.readButtonText}>Start</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               ))}
             </View>
           </ScrollView>
@@ -372,15 +427,34 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   taskCard: {
-    height: 100,
     backgroundColor: 'white',
     borderRadius: 12,
     marginBottom: 16,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  taskImage: {
+    width: '100%',
+    height: 150,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  taskContent: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+    marginRight: 12,
   },
   profileTitle: {
     fontSize: 22,
