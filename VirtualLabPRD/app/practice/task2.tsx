@@ -161,7 +161,7 @@ export default function Task2(): JSX.Element {
       />
 
       <View style={styles.screen}>
-        <Header title="Task 1" />
+        <Header title="Quiz 2" />
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           {quizData.map((item: QuizQuestion, index: number) => (
             <QuestionCard
