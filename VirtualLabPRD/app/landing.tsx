@@ -13,6 +13,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Image,
+  Alert,
 } from "react-native";
 
 const { width } = Dimensions.get('window');
@@ -49,6 +50,46 @@ type MenuItem = {
   title: string;
   icon: string;
   screen: "/profile/quizresults" | "/profile/settings";
+};
+
+const TaskCard = ({ task }: { task: Task }) => {
+  const handleStartQuiz = () => {
+    Alert.alert(
+      "Start Quiz",
+      "Are you sure you want to start the quiz?\nThe quiz can only be taken once.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Start",
+          style: "default",
+          onPress: () => router.push(task.href)
+        }
+      ],
+      { cancelable: true }
+    );
+  };
+
+  return (
+    <View style={styles.taskCard}>
+      <Image
+        source={task.image}
+        style={styles.taskImage}
+        resizeMode="cover"
+      />
+      <View style={styles.taskContent}>
+        <Text style={styles.taskTitle}>{task.title}</Text>
+        <TouchableOpacity 
+          style={styles.readButton}
+          onPress={handleStartQuiz}
+        >
+          <Text style={styles.readButtonText}>Start</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 };
 
 export default function Landing() {
@@ -232,22 +273,7 @@ export default function Landing() {
             <Text style={styles.sectionTitle}>My Task</Text>
             <View style={styles.tasksContainer}>
               {tasks.map((task) => (
-                <View key={task.id} style={styles.taskCard}>
-                  <Image
-                    source={task.image}
-                    style={styles.taskImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.taskContent}>
-                    <Text style={styles.taskTitle}>{task.title}</Text>
-                    <TouchableOpacity 
-                      style={styles.readButton}
-                      onPress={() => router.push(task.href)}
-                    >
-                      <Text style={styles.readButtonText}>Start</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <TaskCard key={task.id} task={task} />
               ))}
             </View>
           </ScrollView>
