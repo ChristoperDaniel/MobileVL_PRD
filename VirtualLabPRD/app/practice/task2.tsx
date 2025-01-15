@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Stack, router } from "expo-router";
+import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import {
   Text,
   View,
@@ -210,13 +211,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   header: {
-    height: 50,
+    minHeight: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#D1C4E9',
     borderBottomWidth: 2,
     borderBottomColor: '#C5B6E0',
     opacity: 0.8,
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
   },
   headerText: {
     fontSize: 20,

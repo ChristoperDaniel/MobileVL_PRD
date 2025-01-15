@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Stack, router } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { StatusBar } from 'expo-status-bar';
+import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import {
   Text,
   View,
@@ -27,7 +29,9 @@ type TabRoute = {
 
 const Header = ({ title }: { title: string }) => (
   <View style={styles.header}>
-    <Text style={styles.headerText}>{title}</Text>
+    <SafeAreaView>
+      <Text style={styles.headerText}>{title}</Text>
+    </SafeAreaView>
   </View>
 );
 
@@ -216,6 +220,7 @@ export default function Landing() {
           headerShown: false,
         }}
       />
+      <StatusBar backgroundColor="#D1C4E9" style="dark" />
    
       <ScrollView 
         ref={scrollViewRef}
@@ -347,13 +352,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1C4E9',
   },
   header: {
-    height: 50,
+    minHeight: 75,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#D1C4E9',
     borderBottomWidth: 2,
     borderBottomColor: '#C5B6E0',
     opacity: 0.8,
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
   },
   headerText: {
     fontSize: 20,
@@ -486,7 +492,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 800,
     color: '#5C63D8',
-    marginTop: 20,
+    marginTop: 50,
     textAlign: 'center',
   },
   profileSection: {

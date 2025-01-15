@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Stack, useRouter } from "expo-router";
+import { StatusBar } from 'expo-status-bar';
 import {
   Text,
   View,
@@ -27,6 +28,7 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#D1C4E9" style="dark" />
       <Stack.Screen
         options={{
           headerTitle: "EduLab",
