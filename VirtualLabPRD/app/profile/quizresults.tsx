@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     },
     quizStatus: {
       backgroundColor: 'white',
-      padding: 16,
+      padding: 8,
       borderRadius: 8,
       marginBottom: 12,
       shadowColor: '#000',
