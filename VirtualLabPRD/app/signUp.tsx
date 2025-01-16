@@ -7,17 +7,49 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { Stack, Link, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState('');
 
-//   const handleSignUp = () => {
-//     console.log('Signing in with:', email, password);
-//     // Add your sign-in logic here
-//   };
+  const handleSignUp = async () => {
+    if (!email.trim() || !password.trim() || !name.trim()) {
+      setErrorMessage('Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      return;
+    }
+
+    try {
+      // Replace 'localhost' with '10.0.2.2' if running on an Android emulator
+      // Or replace it with your local machine IP if testing on a physical device
+      const response = await fetch('http://10.0.2.2:3001/api/auth/register', { // Use actual URL here
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, name, password }), // Ensure the body includes all fields
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        router.replace('/landing');  // On successful signup, navigate to the landing page
+      } else {
+        setErrorMessage(result.message || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      setErrorMessage('An error occurred. Please try again later.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,13 +65,24 @@ export default function SignUp() {
             fontWeight: '900',
           },
           headerTintColor: '#5C63D8',
-          headerRight: undefined, 
+          headerRight: undefined,
           headerBackVisible: true,
         }}
       />
     
       <View style={styles.inputContainer}>
         <Text style={styles.title}>Sign Up</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+          keyboardType="default"
+          autoCapitalize="words"
+          returnKeyType="done"
+        />
+
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -58,29 +101,22 @@ export default function SignUp() {
           autoCapitalize="none"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-        />
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
         <TouchableOpacity 
           style={styles.signUpButton}
-          onPress ={() => router.push('/sign')}
-        //   onPress ={handleSignUp}
+          onPress={handleSignUp} 
         >
           <Text style={styles.signUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          onPress ={() => router.push('/signIn')}
+          onPress={() => router.push('/signIn')}
         >
           <Text style={styles.signInText}>Already have an account? Sign In now.</Text>
         </TouchableOpacity>
-
       </View>
     </SafeAreaView>
   );
@@ -128,5 +164,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 14,
     fontWeight: 700,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });

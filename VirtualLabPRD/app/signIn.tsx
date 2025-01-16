@@ -7,17 +7,49 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { Stack, Link, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const router = useRouter()
+  const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState('');
 
-//   const handleSignIn = () => {
-//     console.log('Signing in with:', email, password);
-//     // Add your sign-in logic here
-//   };
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      setErrorMessage('Please fill in both fields');
+      return;
+    }
+
+    try {
+      // Ganti URL localhost sesuai kebutuhan
+      const response = await fetch('http://10.0.2.2:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Simpan token ke AsyncStorage
+        await AsyncStorage.setItem('email', result.email || '');
+        await AsyncStorage.setItem('name', result.name || '');
+        
+
+        // Redirect ke halaman landing
+        router.replace('/landing');
+      } else {
+        setErrorMessage(result.message || 'Login failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during sign-in:', error);
+      setErrorMessage('An error occurred while logging in. Please try again.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,20 +90,22 @@ export default function SignIn() {
           autoCapitalize="none"
         />
 
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+
         <TouchableOpacity 
           style={styles.signInButton}
-          onPress ={() => router.push('/landing')}
-        //   onPress={handleSignIn}
+          onPress={handleSignIn} // Memastikan fungsi dipanggil
         >
           <Text style={styles.signInButtonText}>Sign In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          onPress ={() => router.push('/signUp')}
+          onPress={() => router.push('/signUp')}
         >
           <Text style={styles.signUpText}>New to EduLab? Sign Up now.</Text>
         </TouchableOpacity>
-
       </View>
     </SafeAreaView>
   );
@@ -99,7 +133,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: '700',
   },
   signInButton: {
     backgroundColor: '#5C63D8',
@@ -118,6 +152,11 @@ const styles = StyleSheet.create({
     color: '#000',
     marginTop: 16,
     fontSize: 14,
-    fontWeight: 700,
+    fontWeight: '700',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });

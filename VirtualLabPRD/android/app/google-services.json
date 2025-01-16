@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "492981148863",
+    "firebase_url": "https://pawm-virtuallab-prd-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "pawm-virtuallab-prd",
+    "storage_bucket": "pawm-virtuallab-prd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:492981148863:android:ad548a54568242765eba0a",
+        "android_client_info": {
+          "package_name": "com.virtuallabprd.edulab"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB378JQwvabYqFtA0-RhMOcPHq1t94WKxc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
