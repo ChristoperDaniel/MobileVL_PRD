@@ -6,32 +6,29 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  ActivityIndicator,
   Dimensions,
   SafeAreaView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  Image,
 } from "react-native";
+
+const { width } = Dimensions.get('window');
 
 export default function Quizresults() {
   const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to get quiz status from API
+  // Keeping the same API functions
   const getQuizStatus = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Get user email from AsyncStorage
       const email = await AsyncStorage.getItem('email');
       if (!email) {
         throw new Error('User email not found');
       }
 
-      // For each quiz (1-5), fetch its status
       const quizStatuses = await Promise.all(
         Array.from({ length: 5 }, async (_, index) => {
           const quizId = index + 1;
@@ -54,10 +51,7 @@ export default function Quizresults() {
         })
       );
 
-      // Store all statuses in AsyncStorage
       await AsyncStorage.setItem('quizStatuses', JSON.stringify(quizStatuses));
-      
-      // Update state with the statuses
       setStatus(JSON.stringify(quizStatuses));
       
     } catch (error) {
@@ -68,16 +62,13 @@ export default function Quizresults() {
     }
   };
 
-  // Load quiz statuses when component mounts
   useEffect(() => {
     const loadQuizStatuses = async () => {
       try {
-        // First try to get from AsyncStorage
         const savedStatuses = await AsyncStorage.getItem('quizStatuses');
         if (savedStatuses) {
           setStatus(savedStatuses);
         }
-        // Then fetch fresh data from API
         await getQuizStatus();
       } catch (error) {
         console.error('Error loading quiz statuses:', error);
@@ -88,39 +79,76 @@ export default function Quizresults() {
     loadQuizStatuses();
   }, []);
 
-  // Parse the status string to display it
   const renderQuizStatuses = () => {
     if (loading) {
-      return <Text style={styles.text}>Loading quiz results...</Text>;
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5C63D8" />
+          <Text style={styles.loadingText}>Loading your progress...</Text>
+        </View>
+      );
     }
 
     if (error) {
-      return <Text style={[styles.text, styles.error]}>{error}</Text>;
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorSubtext}>Please try again later</Text>
+        </View>
+      );
     }
 
     try {
       const quizStatuses = JSON.parse(status || '[]');
       return (
-        <>
+        <View style={styles.resultsContainer}>
+          <Text style={styles.headerText}>Your Progress</Text>
           {quizStatuses.map((quiz: { quizId: number; status: string }) => (
-            <View key={quiz.quizId} style={styles.quizStatus}>
-              <Text style={styles.text}>
-                Quiz {quiz.quizId}:{' '}
-                <Text style={styles.highlight}>
-                  {quiz.status === 'completed' ? 'completed' : 'not completed'}
-                </Text>
-              </Text>
+            <View 
+              key={quiz.quizId} 
+              style={[
+                styles.quizCard,
+                quiz.status === 'completed' && styles.completedCard
+              ]}
+            >
+              <View style={styles.quizContent}>
+                <View style={styles.quizHeader}>
+                  <Text style={styles.quizTitle}>Quiz {quiz.quizId}</Text>
+                  <View 
+                    style={[
+                      styles.statusBadge,
+                      quiz.status === 'completed' ? styles.completedBadge : styles.pendingBadge
+                    ]}
+                  >
+                    <Text style={styles.statusText}>
+                      {quiz.status === 'completed' ? 'Completed' : 'Not Completed'}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.progressBar}>
+                  <View 
+                    style={[
+                      styles.progressFill,
+                      { width: quiz.status === 'completed' ? '100%' : '0%' }
+                    ]} 
+                  />
+                </View>
+              </View>
             </View>
           ))}
-        </>
+        </View>
       );
     } catch (error) {
-      return <Text style={styles.text}>No quiz results available</Text>;
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No quiz results available</Text>
+        </View>
+      );
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Stack.Screen 
         options={{
           headerTitle: "Quiz Results",
@@ -129,56 +157,130 @@ export default function Quizresults() {
           },
           headerTitleStyle: {
             color: '#5C63D8',
-            fontSize: 20,
-            fontWeight: '900',
+            fontSize: 24,
+            fontWeight: '700',
           },
+          headerShadowVisible: false,
           headerTintColor: '#5C63D8',
-          headerRight: undefined,
           headerBackVisible: true,
         }} 
       />
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {renderQuizStatuses()}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#D1C4E9',
+  container: {
+    flex: 1,
+    backgroundColor: '#D1C4E9',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF4444',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  resultsContainer: {
+    width: '100%',
+  },
+  headerText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#5C63D8',
+    marginBottom: 24,
+  },
+  quizCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    content: {
-      padding: 16,
-    },
-    text: {
-      fontSize: 20,
-      color: '#333',
-      textAlign: 'center',
-      marginBottom: 20,
-      lineHeight: 30,
-    },
-    highlight: {
-      color: '#5C63D8',
-      fontWeight: '800',
-    },
-    error: {
-      color: 'red',
-    },
-    quizStatus: {
-      backgroundColor: 'white',
-      padding: 8,
-      borderRadius: 8,
-      marginBottom: 12,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  completedCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  quizContent: {
+    gap: 12,
+  },
+  quizHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  quizTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2A2D4E',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  completedBadge: {
+    backgroundColor: '#E8F5E9',
+  },
+  pendingBadge: {
+    backgroundColor: '#FFF3E0',
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 3,
+  },
 });
