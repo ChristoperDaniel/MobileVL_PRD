@@ -17,6 +17,7 @@ import {
   Image,
   Alert,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 const footer_height = 45;
@@ -201,7 +202,22 @@ const TaskCard = ({ task }: { task: Task }) => {
 export default function Landing() {
   const [activeScreen, setActiveScreen] = useState(0);
   const scrollViewRef = React.useRef<ScrollView>(null);
-  
+  const [userName, setUserName] = useState<string>('User');
+
+  React.useEffect(() => {
+    const getUserName = async () => {
+      try {
+        const name = await AsyncStorage.getItem('name');
+        if (name) {
+          setUserName(name);
+        }
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+      }
+    };
+
+    getUserName();
+  }, []);
   const tabs: TabRoute[] = [
     { 
       name: 'Home', 
@@ -343,7 +359,7 @@ export default function Landing() {
                 style={styles.elephantImage}
               />
               <View style={styles.welcomeTextContainer}>
-                <Text style={styles.welcomeText}>Hi, User! 👋</Text>
+                <Text style={styles.welcomeText}>Hi,{userName}! 👋</Text>
                 <Text style={styles.subText}>
                   Let's continue your exploration with <Text style={styles.highlight}>EduLab</Text>!
                 </Text>
@@ -396,7 +412,7 @@ export default function Landing() {
                   source={require('../assets/images/elephant.png')}
                   style={styles.avatar}
                 />
-              <Text style={styles.userName}>Nicholas Ependi</Text>
+              <Text style={styles.userName}>{userName}</Text>
               <Text style={styles.userRole}>Student</Text>
               </View>
 

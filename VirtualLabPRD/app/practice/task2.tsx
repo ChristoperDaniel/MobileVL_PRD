@@ -10,6 +10,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -147,10 +148,42 @@ export default function Task2(): JSX.Element {
     }, 0);
   };
 
-  const handleHomePress = () => {
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleHomePress = async () => {
     setSelectedAnswers(new Array(quizData.length).fill(null));
     setShowResults(false);
-    router.push("/landing");
+    try {
+      // Get email from AsyncStorage
+      const userEmail = await AsyncStorage.getItem('email');
+      if (!userEmail) {
+          setErrorMessage('User email not found. Please login again.');
+          return;
+      }
+
+      const response = await fetch('http://10.0.2.2:3000/api/quiz/status', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              quiz_id: 2, 
+              status: 'completed',
+              email: userEmail
+          }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+          router.replace('/landing');
+      } else {
+          setErrorMessage(result.error || 'Failed to update quiz status. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating quiz status:', error);
+      setErrorMessage('An error occurred while updating quiz status. Please try again.');
+    }
   };
 
   return (

@@ -36,8 +36,8 @@ export default function SignIn() {
 
       if (response.ok) {
         // Simpan token ke AsyncStorage
-        await AsyncStorage.setItem('email', result.email || '');
-        await AsyncStorage.setItem('name', result.name || '');
+        await AsyncStorage.setItem('email', email);
+        await AsyncStorage.setItem('name', result.user.name);
         
 
         // Redirect ke halaman landing

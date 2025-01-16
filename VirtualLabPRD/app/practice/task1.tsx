@@ -157,7 +157,6 @@ export default function Task1(): JSX.Element {
     try {
       // Get email from AsyncStorage
       const userEmail = await AsyncStorage.getItem('email');
-      
       if (!userEmail) {
           setErrorMessage('User email not found. Please login again.');
           return;
@@ -171,7 +170,7 @@ export default function Task1(): JSX.Element {
           body: JSON.stringify({
               quiz_id: 1, 
               status: 'completed',
-              email: await AsyncStorage.getItem('email')
+              email: userEmail
           }),
       });
 

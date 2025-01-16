@@ -117,17 +117,14 @@ app.post('/api/auth/login', async (req, res) => {
 // Update Quiz Status
 app.post('/api/quiz/status', async (req, res) => {
   const { quiz_id, status, email } = req.body;
-
   if (!quiz_id || !status || !email) {
     return res.status(400).json({ error: 'All fields are required' });
   }
-
   try {
     const existingStatus = await pool.query(
       'SELECT * FROM quiz_status WHERE quiz_id = $1 AND email = $2',
       [quiz_id, email]
     );
-
     if (existingStatus.rows.length > 0) {
       await pool.query(
         'UPDATE quiz_status SET status = $1 WHERE quiz_id = $2 AND email = $3',
@@ -148,15 +145,15 @@ app.post('/api/quiz/status', async (req, res) => {
 });
 
 // Get Quiz Status
-app.get('/api/quiz/status/:quizId/:userEmail', async (req, res) => {
-  const { quizId, userEmail } = req.params;
+app.get('/api/quiz/status/:quiz_id/:email', async (req, res) => {
+  const { quiz_id, email } = req.params;
 
   try {
     const result = await pool.query(
       'SELECT status FROM quiz_status WHERE quiz_id = $1 AND email = $2',
-      [quizId, userEmail]
+      [quiz_id, email]
     );
-    const status = result.rows[0]?.status || 'not_started';
+    const status = result.rows[0]?.status || 'not_completed';
 
     res.json({ status });
   } catch (error) {

@@ -8,6 +8,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -41,6 +43,9 @@ export default function SignUp() {
       const result = await response.json();
 
       if (response.ok) {
+        await AsyncStorage.setItem('email', email);
+        await AsyncStorage.setItem('name', name);
+
         router.replace('/landing');  // On successful signup, navigate to the landing page
       } else {
         setErrorMessage(result.message || 'Signup failed');
