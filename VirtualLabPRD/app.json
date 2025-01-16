@@ -15,16 +15,14 @@
     },
     "newArchEnabled": true,
     "ios": {
-      "googleServicesFile": "GoogleService-Info.plist",
       "supportsTablet": true
     },
     "android": {
-      "googleServicesFile": "google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#D1C4E9"
       },
-      "package": "com.virtuallabprd.edulab"
+      "package": "com.virtuaLabPRD_EduLab"
     },
     "web": {
       "bundler": "metro",
@@ -32,15 +30,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "@react-native-firebase/app",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "useFrameworks": "static"
-          }
-        }
-      ]
     ],
     "experiments": {
       "typedRoutes": true
