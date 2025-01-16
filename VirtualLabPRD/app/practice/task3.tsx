@@ -161,7 +161,7 @@ export default function Task3(): JSX.Element {
           return;
       }
 
-      const response = await fetch('http://10.0.2.2:3000/api/quiz/status', {
+      const response = await fetch('https://backendedulab.vercel.app/api/quiz/status', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

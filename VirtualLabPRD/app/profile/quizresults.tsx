@@ -36,7 +36,7 @@ export default function Quizresults() {
         Array.from({ length: 5 }, async (_, index) => {
           const quizId = index + 1;
           const response = await fetch(
-            `http://10.0.2.2:3000/api/quiz/status/${quizId}/${email}`,
+            `https://backendedulab.vercel.app/api/quiz/status/${quizId}/${email}`,
             {
               method: 'GET',
               headers: {
