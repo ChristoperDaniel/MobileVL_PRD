@@ -6,16 +6,17 @@ const cors = require('cors');
 
 // Constants
 const SALT_ROUNDS = 10;
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Database configuration
 const db = knex({
   client: 'pg',
   connection: {
-    host: process.env.DB_HOST || '127.0.0.1',
+    host: process.env.DB_HOST || 'autorack.proxy.rlwy.net',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'localedulab'
+    password: process.env.DB_PASSWORD || 'OgXqdNzosTQyuinjkphLqfVUzvqzTcxp',
+    database: process.env.DB_NAME || 'railway',
+    port: process.env.DB_PORT || 16662
   }
 });
 
@@ -110,6 +111,7 @@ app.put('/api/update-name', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('teslogin');
 
   try {
     // Input validation
