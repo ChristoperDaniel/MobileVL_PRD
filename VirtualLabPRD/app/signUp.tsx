@@ -30,7 +30,7 @@ export default function SignUp() {
     try {
       // Replace 'localhost' with '10.0.2.2' if running on an Android emulator
       // Or replace it with your local machine IP if testing on a physical device
-      const response = await fetch('http://10.0.2.2:3001/api/auth/register', { // Use actual URL here
+      const response = await fetch('https://backendedulab.vercel.app/api/auth/register', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

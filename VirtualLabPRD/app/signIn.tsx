@@ -24,7 +24,7 @@ export default function SignIn() {
 
     try {
       // Ganti URL localhost sesuai kebutuhan
-      const response = await fetch('http://10.0.2.2:3001/api/auth/login', {
+      const response = await fetch('https://backendedulab.vercel.app/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
