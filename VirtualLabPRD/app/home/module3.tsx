@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
-import { Stack } from 'expo-router';
 import {
-  Text,
+  Platform,
   View,
+  Text,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
-  Platform,
   Alert,
-} from "react-native";
-import WebView from 'react-native-webview';
-import { Ionicons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+} from 'react-native';
+import { Stack } from 'expo-router';
 
-export default function Module1() {
+type FileSystemType = typeof import('expo-file-system');
+type SharingType = typeof import('expo-sharing');
+type WebViewType = typeof import('react-native-webview')['default'];
+type IconsType = typeof import('@expo/vector-icons')['Ionicons'];
+
+let FileSystem: FileSystemType;
+let Sharing: SharingType;
+let WebView: WebViewType;
+let Ionicons: IconsType;
+
+if (Platform.OS !== 'web') {
+  FileSystem = require('expo-file-system');
+  Sharing = require('expo-sharing');
+  WebView = require('react-native-webview').default;
+  Ionicons = require('@expo/vector-icons').Ionicons;
+}
+
+export default function Module3() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   
@@ -25,12 +38,17 @@ export default function Module1() {
   const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
 
   const downloadPDF = async () => {
+    if (Platform.OS === 'web') {
+      window.open(pdfUrl, '_blank');
+      return;
+    }
+
     try {
       setIsDownloading(true);
       
       const downloadResumable = FileSystem.createDownloadResumable(
         pdfUrl,
-        FileSystem.documentDirectory + 'Module3.pdf',
+        FileSystem.documentDirectory + 'Module1.pdf',
         {},
         (downloadProgress) => {
           const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
@@ -56,28 +74,84 @@ export default function Module1() {
     }
   };
 
-  const injectedJavaScript = `
-    document.querySelector('meta[name="viewport"]').setAttribute('content', 
-    'width=device-width, initial-scale=1.0, maximum-scale=4.0, user-scalable=1');
-    true;
-  `;
+  const renderPDFViewer = () => {
+    if (Platform.OS === 'web') {
+      return (
+        <View style={styles.webViewContainer}>
+          <iframe
+            src={previewUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+            }}
+            allow="autoplay"
+            onLoad={() => setIsLoading(false)}
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          />
+        </View>
+      );
+    }
+
+    return (
+      <WebView
+        source={{ uri: previewUrl }}
+        style={styles.pdf}
+        onLoadStart={() => setIsLoading(true)}
+        onLoadEnd={() => setIsLoading(false)}
+        injectedJavaScript={`
+          document.querySelector('meta[name="viewport"]').setAttribute('content', 
+          'width=device-width, initial-scale=1.0, maximum-scale=4.0, user-scalable=1');
+          true;
+        `}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        scalesPageToFit={true}
+        bounces={true}
+        scrollEnabled={true}
+        pinchGestureEnabled={true}
+        allowsInlineMediaPlayback={true}
+        showsHorizontalScrollIndicator={true}
+        showsVerticalScrollIndicator={true}
+        startInLoadingState={true}
+        androidLayerType={Platform.OS === 'android' ? 'hardware' : undefined}
+        onError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn('WebView error: ', nativeEvent);
+        }}
+      />
+    );
+  };
+
+  const renderDownloadIcon = () => {
+    if (Platform.OS === 'web') {
+      return (
+        <Text style={styles.downloadIcon}>⬇️</Text>
+      );
+    }
+    return (
+      <Ionicons name="download-outline" size={24} color="white" />
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{
-        headerTitle: "Aspects of Engineering and Problem-Solving Methods",
-        headerStyle: {
-          backgroundColor: '#D1C4E9',
-        },
-        headerTitleStyle: {
-          color: '#5C63D8',
-          fontSize: 20,
-          fontWeight: '900',
-        },
-        headerTintColor: '#5C63D8',
-        headerRight: undefined,
-        headerBackVisible: true,
-      }} />
+      <Stack.Screen 
+        options={{
+          headerTitle: "Aspects of Engineering and Problem Solving Methods",
+          headerStyle: {
+            backgroundColor: '#D1C4E9',
+          },
+          headerTitleStyle: {
+            color: '#5C63D8',
+            fontSize: 20,
+            fontWeight: '900',
+          },
+          headerTintColor: '#5C63D8',
+          headerRight: undefined,
+          headerBackVisible: true,
+        }} 
+      />
       
       <View style={styles.pdfContainer}>
         {isLoading && (
@@ -87,28 +161,7 @@ export default function Module1() {
           </View>
         )}
         
-        <WebView
-          source={{ uri: previewUrl }}
-          style={styles.pdf}
-          onLoadStart={() => setIsLoading(true)}
-          onLoadEnd={() => setIsLoading(false)}
-          injectedJavaScript={injectedJavaScript}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          scalesPageToFit={true}
-          bounces={true}
-          scrollEnabled={true}
-          pinchGestureEnabled={true}
-          allowsInlineMediaPlayback={true}
-          showsHorizontalScrollIndicator={true}
-          showsVerticalScrollIndicator={true}
-          startInLoadingState={false}
-          androidLayerType={Platform.OS === 'android' ? 'hardware' : undefined}
-          onError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            console.warn('WebView error: ', nativeEvent);
-          }}
-        />
+        {renderPDFViewer()}
       </View>
 
       <TouchableOpacity 
@@ -120,7 +173,7 @@ export default function Module1() {
           <ActivityIndicator size="small" color="white" />
         ) : (
           <>
-            <Ionicons name="download-outline" size={24} color="white" />
+            {renderDownloadIcon()}
             <Text style={styles.downloadButtonText}>Download PDF</Text>
           </>
         )}
@@ -137,7 +190,16 @@ const styles = StyleSheet.create({
   pdfContainer: {
     flex: 1,
     width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height - 100,
+    height: Platform.OS === 'web' 
+      ? Dimensions.get('window').height - 150
+      : Dimensions.get('window').height - 100,
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+  },
+  webViewContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#ffffff',
   },
   pdf: {
@@ -178,5 +240,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  downloadIcon: {
+    fontSize: 20,
   },
 });

@@ -3,7 +3,7 @@ import { Stack, router } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StatusBar as RNStatusBar } from 'react-native';
+import { Platform, Modal, StatusBar as RNStatusBar } from 'react-native';
 import {
   Text,
   View,
@@ -56,24 +56,75 @@ type MenuItem = {
   screen: "/profile/quizresults" | "/profile/settings";
 };
 
+interface CustomAlertProps {
+  visible: boolean;
+  title: string;
+  message: string;
+  onCancel?: () => void;
+  onConfirm?: () => void;
+  cancelText?: string;
+  confirmText?: string;
+}
+
+const CustomAlert = ({ 
+  visible, 
+  title, 
+  message, 
+  onCancel, 
+  onConfirm,
+  cancelText = "Cancel",
+  confirmText = "Confirm"
+}: CustomAlertProps) => {
+  // Use web alert on web platform
+  if (Platform.OS === 'web') {
+    if (visible) {
+      const confirmed = window.confirm(`${title}\n\n${message}`);
+      if (confirmed) {
+        onConfirm?.();
+      } else {
+        onCancel?.();
+      }
+    }
+    return null;
+  }
+
+  // Use custom modal on mobile platforms
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.alertBox}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.message}>{message}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={[styles.button, styles.cancelButton]} 
+              onPress={onCancel}
+            >
+              <Text style={styles.cancelButtonText}>{cancelText}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, styles.confirmButton]} 
+              onPress={onConfirm}
+            >
+              <Text style={styles.confirmButtonText}>{confirmText}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const TaskCard = ({ task }: { task: Task }) => {
+  const [showAlert, setShowAlert] = useState(false);
+
   const handleStartQuiz = () => {
-    Alert.alert(
-      "Start Quiz",
-      "Are you sure you want to start the quiz?\nThe quiz can only be taken once.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Start",
-          style: "default",
-          onPress: () => router.push(task.href)
-        }
-      ],
-      { cancelable: true }
-    );
+    setShowAlert(true);
   };
 
   return (
@@ -92,9 +143,60 @@ const TaskCard = ({ task }: { task: Task }) => {
           <Text style={styles.readButtonText}>Start</Text>
         </TouchableOpacity>
       </View>
+      
+      <CustomAlert
+        visible={showAlert}
+        title="Start Quiz"
+        message="Are you sure you want to start the quiz? The quiz can only be taken once."
+        onCancel={() => setShowAlert(false)}
+        onConfirm={() => {
+          setShowAlert(false);
+          router.push(task.href);
+        }}
+      />
     </View>
   );
 };
+
+// const TaskCard = ({ task }: { task: Task }) => {
+//   const handleStartQuiz = () => {
+//     Alert.alert(
+//       "Start Quiz",
+//       "Are you sure you want to start the quiz?\nThe quiz can only be taken once.",
+//       [
+//         {
+//           text: "Cancel",
+//           style: "cancel"
+//         },
+//         {
+//           text: "Start",
+//           style: "default",
+//           onPress: () => router.push(task.href)
+//         }
+//       ],
+//       { cancelable: true }
+//     );
+//   };
+
+//   return (
+//     <View style={styles.taskCard}>
+//       <Image
+//         source={task.image}
+//         style={styles.taskImage}
+//         resizeMode="cover"
+//       />
+//       <View style={styles.taskContent}>
+//         <Text style={styles.taskTitle}>{task.title}</Text>
+//         <TouchableOpacity 
+//           style={styles.readButton}
+//           onPress={handleStartQuiz}
+//         >
+//           <Text style={styles.readButtonText}>Start</Text>
+//         </TouchableOpacity>
+//       </View>
+//     </View>
+//   );
+// };
 
 export default function Landing() {
   const [activeScreen, setActiveScreen] = useState(0);
@@ -241,7 +343,7 @@ export default function Landing() {
                 style={styles.elephantImage}
               />
               <View style={styles.welcomeTextContainer}>
-                <Text style={styles.welcomeText}>Welcome, User! 👋</Text>
+                <Text style={styles.welcomeText}>Hi, User! 👋</Text>
                 <Text style={styles.subText}>
                   Let's continue your exploration with <Text style={styles.highlight}>EduLab</Text>!
                 </Text>
@@ -568,5 +670,58 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: "#5C63D8",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  alertBox: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  message: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+  },
+  confirmButton: {
+    backgroundColor: '#5C63D8',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
