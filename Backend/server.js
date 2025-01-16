@@ -1,22 +1,29 @@
-const express = require('express');
-const path = require('path');
-const knex = require('knex');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import cors from 'cors';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Constants
 const SALT_ROUNDS = 10;
 const PORT = process.env.PORT || 3000;
 
-// Database configuration
-const db = knex({
-  client: 'pg',
-  connection: {
-    host: process.env.DB_HOST || 'autorack.proxy.rlwy.net',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'OgXqdNzosTQyuinjkphLqfVUzvqzTcxp',
-    database: process.env.DB_NAME || 'railway',
-    port: process.env.DB_PORT || 16662
+// Database configuration using pg Pool
+const pool = new Pool({
+  host: process.env.DB_HOST || 'autorack.proxy.rlwy.net',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'OgXqdNzosTQyuinjkphLqfVUzvqzTcxp',
+  database: process.env.DB_NAME || 'railway',
+  port: process.env.DB_PORT || 16662
+});
+
+// Test database connection
+pool.connect((err) => {
+  if (err) {
+    console.error('Database connection failed:', err);
+    process.exit(1); // Exit the process with failure
+  } else {
+    console.log('Database connected successfully.');
   }
 });
 
@@ -26,145 +33,127 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Your routes go here...
+// Routes
 
-// Test database connection
-db.raw('SELECT 1')
-  .then(() => {
-    console.log('Database connected successfully.');
-    
-  })
-  .catch((error) => {
-    console.error('Database connection failed:', error);
-    process.exit(1); // Exit the process with failure
-  });
-
+// Register Route
 app.post('/api/auth/register', async (req, res) => {
-    const { email, name, password } = req.body;
-    console.log('tes');
-    
-    // Start a transaction to ensure both operations succeed or fail together
-    const trx = await db.transaction();
-  
+  const { email, name, password } = req.body;
+
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const client = await pool.connect();
+
     try {
-      // Input validation
-      if (!email || !password) {
-        return res.status(400).json({ error: 'All fields are required' });
-      }
-  
       // Check if user already exists
-      const existingUser = await trx('users').where({ email }).first();
-      if (existingUser) {
+      const userExists = await client.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email]
+      );
+      if (userExists.rows.length > 0) {
         return res.status(400).json({ error: 'Email already registered' });
       }
-  
+
       // Hash password
       const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-  
-      // Insert new user
-      await trx('users').insert({
-        email,
-        name,
-        password: hashedPassword
+
+      // Insert user
+      await client.query(
+        'INSERT INTO users (email, name, password) VALUES ($1, $2, $3)',
+        [email, name, hashedPassword]
+      );
+
+      // Insert quiz status entries
+      const quizStatusPromises = Array.from({ length: 5 }, (_, index) => {
+        return client.query(
+          'INSERT INTO quiz_status (email, quiz_id, status) VALUES ($1, $2, $3)',
+          [email, index + 1, 'not completed']
+        );
       });
-  
-      // Create quiz status entries
-      const quizStatusEntries = Array.from({ length: 5 }, (_, index) => ({
-        email,
-        quiz_id: index + 1,
-        status: 'not completed'
-      }));
-  
-      await trx('quiz_status').insert(quizStatusEntries);
-  
-      // Commit the transaction
-      await trx.commit();
-  
+      await Promise.all(quizStatusPromises);
+
       res.status(201).json({ message: 'User registered successfully' });
-    } catch (error) {
-      // Rollback the transaction in case of error
-      await trx.rollback();
-      console.error('Registration error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+    } finally {
+      client.release();
     }
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// API to Input Name
+// Update Name Route
 app.put('/api/update-name', async (req, res) => {
   const { name, email } = req.body;
 
   if (!name || !email) {
-    return res.json('Name and email fields are required');
+    return res.status(400).json({ error: 'Name and email are required' });
   }
 
   try {
-    // Update name for the user
-    await db('users').where({ email }).update({ name });
-
+    await pool.query('UPDATE users SET name = $1 WHERE email = $2', [name, email]);
     res.json({ success: true, message: 'Name updated successfully' });
   } catch (error) {
-    res.json('Error updating name');
+    console.error('Error updating name:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
+// Login Route
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('teslogin');
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
 
   try {
-    // Input validation
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
 
-    // Find user
-    const user = await db('users').where({ email }).first();
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Verify password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    res.json({
-      user: {
-        email: user.email,
-        name: user.name
-      }
-    });
+    res.json({ user: { email: user.email, name: user.name } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Quiz Status Routes
+// Update Quiz Status
 app.post('/api/quiz/status', async (req, res) => {
   const { quiz_id, status, user_email } = req.body;
 
-  try {
-    // Check if status already exists
-    const existingStatus = await db('quiz_status')
-      .where({ quiz_id, user_email })
-      .first();
+  if (!quiz_id || !status || !user_email) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
 
-    if (existingStatus) {
-      // Update existing status
-      await db('quiz_status')
-        .where({ quiz_id, user_email })
-        .update({ status });
+  try {
+    const existingStatus = await pool.query(
+      'SELECT * FROM quiz_status WHERE quiz_id = $1 AND email = $2',
+      [quiz_id, user_email]
+    );
+
+    if (existingStatus.rows.length > 0) {
+      await pool.query(
+        'UPDATE quiz_status SET status = $1 WHERE quiz_id = $2 AND email = $3',
+        [status, quiz_id, user_email]
+      );
     } else {
-      // Create new status
-      await db('quiz_status').insert({
-        quiz_id,
-        user_email,
-        status
-      });
+      await pool.query(
+        'INSERT INTO quiz_status (quiz_id, email, status) VALUES ($1, $2, $3)',
+        [quiz_id, user_email, status]
+      );
     }
 
     res.json({ message: 'Quiz status updated successfully' });
@@ -174,22 +163,29 @@ app.post('/api/quiz/status', async (req, res) => {
   }
 });
 
+// Get Quiz Status
 app.get('/api/quiz/status/:quizId/:userEmail', async (req, res) => {
   const { quizId, userEmail } = req.params;
 
   try {
-    const status = await db('quiz_status')
-      .where({ quiz_id: quizId, user_email: userEmail })
-      .first();
+    const result = await pool.query(
+      'SELECT status FROM quiz_status WHERE quiz_id = $1 AND email = $2',
+      [quizId, userEmail]
+    );
+    const status = result.rows[0]?.status || 'not_started';
 
-    res.json({ status: status ? status.status : 'not_started' });
+    res.json({ status });
   } catch (error) {
     console.error('Quiz status fetch error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Start server
+// Start the Server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+app.get('/', (req, res) => {
+  res.send('Hello World! The backend is working.');
 });
