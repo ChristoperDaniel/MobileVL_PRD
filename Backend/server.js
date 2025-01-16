@@ -85,22 +85,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Update Name Route
-app.put('/api/update-name', async (req, res) => {
-  const { name, email } = req.body;
-
-  if (!name || !email) {
-    return res.status(400).json({ error: 'Name and email are required' });
-  }
-
-  try {
-    await pool.query('UPDATE users SET name = $1 WHERE email = $2', [name, email]);
-    res.json({ success: true, message: 'Name updated successfully' });
-  } catch (error) {
-    console.error('Error updating name:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // Login Route
 app.post('/api/auth/login', async (req, res) => {
