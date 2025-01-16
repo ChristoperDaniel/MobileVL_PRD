@@ -53,7 +53,7 @@ type MenuItem = {
   id: number;
   title: string;
   icon: string;
-  screen: "/profile/quizresults" | "/profile/settings";
+  screen: "/profile/quizresults" | "/profile/about";
 };
 
 interface CustomAlertProps {
@@ -309,9 +309,9 @@ export default function Landing() {
     },
     {
       id: 2,
-      title: 'Settings',
-      icon: 'settings',
-      screen: "/profile/settings"
+      title: 'About',
+      icon: 'info',
+      screen: "/profile/about"
     },
   ];
 
@@ -414,6 +414,16 @@ export default function Landing() {
                     <Icon name="chevron-right" size={24} color="#5C63DB" />
                   </TouchableOpacity>
                 ))}
+              </View>
+
+              <View style={styles.accountActions}>
+                <TouchableOpacity 
+                  style={styles.actionButton}
+                  onPress={() => router.push('/')}                      
+                >
+                  <Icon name="logout" size={24} color="white" />
+                  <Text style={styles.actionButtonText}>Log Out</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
@@ -723,5 +733,34 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: 'white',
     fontWeight: '600',
+  },
+  accountActions: {
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  actionButton: {
+    backgroundColor: '#5C63D8', 
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: '90%', 
+  },
+  actionButtonText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '700',
+    marginLeft: 8, 
   },
 });
