@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#D1C4E9"
       },
-      "package": "com.virtuaLabPRD_EduLab"
+      "package": "com.virtualLabPRD_EduLab" 
     },
     "web": {
       "bundler": "metro",
